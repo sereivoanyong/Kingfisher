@@ -31,7 +31,7 @@ import Foundation
 /// Used by view extensions to signal that a previously issued image retrieval
 /// is no longer needed. The token can be safely read from any thread (e.g.,
 /// the disk cache I/O queue) without accessing UI-associated state directly.
-final class CancellationToken: @unchecked Sendable {
+final public class CancellationToken: @unchecked Sendable {
     private let lock = NSLock()
     private var _isCancelled = false
 
