@@ -48,7 +48,7 @@ class HighResolutionCollectionViewController: UICollectionViewController {
 
     override func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath)
     {
-        (cell as! ImageCollectionViewCell).cellImageView.kf.cancelDownloadTask()
+        (cell as! ImageCollectionViewCell).cellImageView.kf.cancelImageDownloadTask()
     }
     
     override func collectionView(

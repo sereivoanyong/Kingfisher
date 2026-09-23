@@ -199,7 +199,7 @@ final class ImageDataProviderCancellationTests: XCTestCase {
             done.fulfill()
         }
 
-        imageView.kf.cancelDownloadTask()
+        imageView.kf.cancelImageDownloadTask()
         wait(for: [done], timeout: 2.0)
     }
 

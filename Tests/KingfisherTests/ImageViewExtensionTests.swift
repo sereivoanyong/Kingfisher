@@ -475,7 +475,7 @@ class ImageViewExtensionTests: XCTestCase, @unchecked Sendable {
             delay(0.1) { exp.fulfill() }
         }
 
-        self.imageView.kf.cancelDownloadTask()
+        self.imageView.kf.cancelImageDownloadTask()
         _ = stub.go()
 
         waitForExpectations(timeout: 3, handler: nil)
@@ -1026,7 +1026,7 @@ class ImageViewExtensionTests: XCTestCase, @unchecked Sendable {
         var finishCalled = false
 
         delay(1.0) {
-            self.imageView.kf.cancelDownloadTask()
+            self.imageView.kf.cancelImageDownloadTask()
         }
         delay(1.2) {
             _ = dataStub.go()

@@ -99,7 +99,7 @@ public enum KingfisherError: Error {
         ///
         /// Emitted when a provider-backed load is cancelled via
         /// ``DownloadTask/cancel()`` (including through
-        /// `imageView.kf.cancelDownloadTask()`). Kingfisher cancels the `Task` in which
+        /// `imageView.kf.cancelImageDownloadTask()`). Kingfisher cancels the `Task` in which
         /// the provider's ``ImageDataProvider/data()`` runs; this error is delivered to
         /// the completion handler instead of ``ImageLoadingResult``, matching the
         /// behavior of a cancelled network source.

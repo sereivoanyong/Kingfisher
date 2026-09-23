@@ -147,7 +147,7 @@ extension KingfisherWrapper where Base: KFCrossPlatformImageView {
     {
         guard let source = source else {
             setPlaceholderValue(placeholder)
-            setTaskIdentifierValue(nil)
+            setImageTaskIdentifierValue(nil)
             completionHandler?(.failure(KingfisherError.imageSettingError(reason: .emptySource)))
             return nil
         }
@@ -164,14 +164,14 @@ extension KingfisherWrapper where Base: KFCrossPlatformImageView {
         maybeIndicator?.startAnimatingView()
 
         let issuedIdentifier = Source.Identifier.next()
-        setTaskIdentifierValue(issuedIdentifier)
+        setImageTaskIdentifierValue(issuedIdentifier)
 
         // Create a thread-safe cancellation token for background checks.
         // This avoids reading the view's taskIdentifier associated object
         // from non-main threads (e.g., the disk cache ioQueue).
         let token = CancellationToken()
-        cancellationToken?.cancel()
-        setCancellationTokenValue(token)
+        imageCancellationToken?.cancel()
+        setImageCancellationTokenValue(token)
 
         if base.shouldPreloadAllAnimation() {
             options.preloadAllAnimationData = true
@@ -209,7 +209,7 @@ extension KingfisherWrapper where Base: KFCrossPlatformImageView {
                     let mutatingSelf = base.kf
 
                     maybeIndicator?.stopAnimatingView()
-                    guard issuedIdentifier == mutatingSelf.taskIdentifier else {
+                    guard issuedIdentifier == mutatingSelf.imageTaskIdentifier else {
                         let reason: KingfisherError.ImageSettingErrorReason
                         do {
                             let value = try result.get()
@@ -223,7 +223,7 @@ extension KingfisherWrapper where Base: KFCrossPlatformImageView {
                     }
 
                     mutatingSelf.setImageTaskValue(nil)
-                    mutatingSelf.setTaskIdentifierValue(nil)
+                    mutatingSelf.setImageTaskIdentifierValue(nil)
 
                     switch result {
                     case .success(let value):
@@ -257,9 +257,9 @@ extension KingfisherWrapper where Base: KFCrossPlatformImageView {
     /// Cancels the image download task of the image view if it is running.
     ///
     /// Nothing will happen if the downloading has already finished.
-    public func cancelDownloadTask() {
+    public func cancelImageDownloadTask() {
         imageTask?.cancel()
-        cancellationToken?.cancel()
+        imageCancellationToken?.cancel()
     }
 
     private func needsTransition(options: KingfisherParsedOptionsInfo, cacheType: CacheType) -> Bool {
@@ -308,31 +308,36 @@ extension KingfisherWrapper where Base: KFCrossPlatformImageView {
 }
 
 // MARK: - Associated Object
-@MainActor private var taskIdentifierKey: Void?
-@MainActor private var cancellationTokenKey: Void?
+@MainActor private var imageTaskKey: Void?
+@MainActor private var imageTaskIdentifierKey: Void?
+@MainActor private var imageCancellationTokenKey: Void?
 @MainActor private var indicatorKey: Void?
 @MainActor private var indicatorTypeKey: Void?
 @MainActor private var placeholderKey: Void?
-@MainActor private var imageTaskKey: Void?
 
 @MainActor
 extension KingfisherWrapper where Base: KFCrossPlatformImageView {
 
     // MARK: Properties
-    public private(set) var taskIdentifier: Source.Identifier.Value? {
+    private var imageTask: DownloadTask? {
+        get { return getAssociatedObject(base, &imageTaskKey) }
+        set { setRetainedAssociatedObject(base, &imageTaskKey, newValue)}
+    }
+
+    public private(set) var imageTaskIdentifier: Source.Identifier.Value? {
         get {
-            let box: Box<Source.Identifier.Value>? = getAssociatedObject(base, &taskIdentifierKey)
+            let box: Box<Source.Identifier.Value>? = getAssociatedObject(base, &imageTaskIdentifierKey)
             return box?.value
         }
         set {
             let box = newValue.map { Box($0) }
-            setRetainedAssociatedObject(base, &taskIdentifierKey, box)
+            setRetainedAssociatedObject(base, &imageTaskIdentifierKey, box)
         }
     }
 
-    var cancellationToken: CancellationToken? {
-        get { getAssociatedObject(base, &cancellationTokenKey) }
-        set { setRetainedAssociatedObject(base, &cancellationTokenKey, newValue) }
+    var imageCancellationToken: CancellationToken? {
+        get { getAssociatedObject(base, &imageCancellationTokenKey) }
+        set { setRetainedAssociatedObject(base, &imageCancellationTokenKey, newValue) }
     }
 
     /// Specifies which indicator type is going to be used.
@@ -403,11 +408,6 @@ extension KingfisherWrapper where Base: KFCrossPlatformImageView {
             setRetainedAssociatedObject(base, &indicatorKey, newValue.map(Box.init))
         }
     }
-    
-    private var imageTask: DownloadTask? {
-        get { return getAssociatedObject(base, &imageTaskKey) }
-        set { setRetainedAssociatedObject(base, &imageTaskKey, newValue)}
-    }
 
     /// Represents the ``Placeholder`` used for this image view.
     ///
@@ -417,17 +417,17 @@ extension KingfisherWrapper where Base: KFCrossPlatformImageView {
         set { setPlaceholderValue(newValue) }
     }
 
-    private func setTaskIdentifierValue(_ value: Source.Identifier.Value?) {
-        let box = value.map { Box($0) }
-        setRetainedAssociatedObject(base, &taskIdentifierKey, box)
-    }
-
-    private func setCancellationTokenValue(_ value: CancellationToken?) {
-        setRetainedAssociatedObject(base, &cancellationTokenKey, value)
-    }
-
     private func setImageTaskValue(_ value: DownloadTask?) {
         setRetainedAssociatedObject(base, &imageTaskKey, value)
+    }
+
+    private func setImageTaskIdentifierValue(_ value: Source.Identifier.Value?) {
+        let box = value.map { Box($0) }
+        setRetainedAssociatedObject(base, &imageTaskIdentifierKey, box)
+    }
+
+    private func setImageCancellationTokenValue(_ value: CancellationToken?) {
+        setRetainedAssociatedObject(base, &imageCancellationTokenKey, value)
     }
 
     private func setPlaceholderValue(_ value: (any Placeholder)?) {

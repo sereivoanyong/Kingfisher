@@ -47,7 +47,7 @@ extension NormalLoadingViewController {
         forItemAt indexPath: IndexPath)
     {
         // This will cancel all unfinished downloading task when the cell disappearing.
-        (cell as! ImageCollectionViewCell).cellImageView.kf.cancelDownloadTask()
+        (cell as! ImageCollectionViewCell).cellImageView.kf.cancelImageDownloadTask()
     }
     
     override func collectionView(

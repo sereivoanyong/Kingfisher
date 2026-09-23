@@ -82,22 +82,22 @@ extension KingfisherWrapper where Base: UIButton {
         return setImage(
             with: source,
             imageAccessor: ImagePropertyAccessor(
-                setImage: { button, image, _ in
-                    button.setImage(image, for: state)
-                },
                 getImage: { button in
                     button.image(for: state)
+                },
+                setImage: { button, image, _ in
+                    button.setImage(image, for: state)
                 }
             ),
             taskAccessor: TaskPropertyAccessor(
-                setTaskIdentifier: { wrapper, identifier in
-                    wrapper.setTaskIdentifier(identifier, for: state)
-                },
-                getTaskIdentifier: { wrapper in
-                    wrapper.taskIdentifier(for: state)
-                },
                 setTask: { wrapper, task in
                     wrapper.imageTask = task
+                },
+                getTaskIdentifier: { wrapper in
+                    wrapper.imageTaskIdentifier(for: state)
+                },
+                setTaskIdentifier: { wrapper, identifier in
+                    wrapper.setImageTaskIdentifier(identifier, for: state)
                 },
                 getCancellationToken: { wrapper in
                     wrapper.imageCancellationToken
@@ -172,22 +172,22 @@ extension KingfisherWrapper where Base: UIButton {
         return setImage(
             with: source,
             imageAccessor: ImagePropertyAccessor(
-                setImage: { button, image, _ in
-                    button.setBackgroundImage(image, for: state)
-                },
                 getImage: { button in
                     button.backgroundImage(for: state)
+                },
+                setImage: { button, image, _ in
+                    button.setBackgroundImage(image, for: state)
                 }
             ),
             taskAccessor: TaskPropertyAccessor(
-                setTaskIdentifier: { wrapper, identifier in
-                    wrapper.setBackgroundTaskIdentifier(identifier, for: state)
+                setTask: { wrapper, task in
+                    wrapper.backgroundImageTask = task
                 },
                 getTaskIdentifier: { wrapper in
                     wrapper.backgroundTaskIdentifier(for: state)
                 },
-                setTask: { wrapper, task in
-                    wrapper.backgroundImageTask = task
+                setTaskIdentifier: { wrapper, identifier in
+                    wrapper.setBackgroundTaskIdentifier(identifier, for: state)
                 },
                 getCancellationToken: { wrapper in
                     wrapper.backgroundImageCancellationToken
@@ -214,8 +214,8 @@ extension KingfisherWrapper where Base: UIButton {
 }
 
 // MARK: - Associated Object
-@MainActor private var taskIdentifierKey: Void?
 @MainActor private var imageTaskKey: Void?
+@MainActor private var imageTaskIdentifierKey: Void?
 @MainActor private var imageCancellationTokenKey: Void?
 
 // MARK: Properties
@@ -223,25 +223,25 @@ extension KingfisherWrapper where Base: UIButton {
 extension KingfisherWrapper where Base: UIButton {
 
     private typealias TaskIdentifier = Box<[UInt: Source.Identifier.Value]>
-    
-    public func taskIdentifier(for state: UIControl.State) -> Source.Identifier.Value? {
-        return taskIdentifierInfo.value[state.rawValue]
-    }
 
-    private func setTaskIdentifier(_ identifier: Source.Identifier.Value?, for state: UIControl.State) {
-        taskIdentifierInfo.value[state.rawValue] = identifier
-    }
-    
-    private var taskIdentifierInfo: TaskIdentifier {
-        return  getAssociatedObject(base, &taskIdentifierKey) ?? {
-            setRetainedAssociatedObject(base, &taskIdentifierKey, $0)
-            return $0
-        } (TaskIdentifier([:]))
-    }
-    
     private var imageTask: DownloadTask? {
         get { return getAssociatedObject(base, &imageTaskKey) }
         nonmutating set { setRetainedAssociatedObject(base, &imageTaskKey, newValue)}
+    }
+
+    public func imageTaskIdentifier(for state: UIControl.State) -> Source.Identifier.Value? {
+        return imageTaskIdentifierInfo.value[state.rawValue]
+    }
+
+    private func setImageTaskIdentifier(_ identifier: Source.Identifier.Value?, for state: UIControl.State) {
+        imageTaskIdentifierInfo.value[state.rawValue] = identifier
+    }
+
+    private var imageTaskIdentifierInfo: TaskIdentifier {
+        return getAssociatedObject(base, &imageTaskIdentifierKey) ?? {
+            setRetainedAssociatedObject(base, &imageTaskIdentifierKey, $0)
+            return $0
+        } (TaskIdentifier([:]))
     }
 
     private var imageCancellationToken: CancellationToken? {
@@ -250,15 +250,19 @@ extension KingfisherWrapper where Base: UIButton {
     }
 }
 
-
-@MainActor private var backgroundTaskIdentifierKey: Void?
 @MainActor private var backgroundImageTaskKey: Void?
+@MainActor private var backgroundImageTaskIdentifierKey: Void?
 @MainActor private var backgroundImageCancellationTokenKey: Void?
 
 // MARK: Background Properties
 @MainActor
 extension KingfisherWrapper where Base: UIButton {
-    
+
+    private var backgroundImageTask: DownloadTask? {
+        get { return getAssociatedObject(base, &backgroundImageTaskKey) }
+        nonmutating set { setRetainedAssociatedObject(base, &backgroundImageTaskKey, newValue) }
+    }
+
     public func backgroundTaskIdentifier(for state: UIControl.State) -> Source.Identifier.Value? {
         return backgroundTaskIdentifierInfo.value[state.rawValue]
     }
@@ -268,15 +272,10 @@ extension KingfisherWrapper where Base: UIButton {
     }
     
     private var backgroundTaskIdentifierInfo: TaskIdentifier {
-        return  getAssociatedObject(base, &backgroundTaskIdentifierKey) ?? {
-            setRetainedAssociatedObject(base, &backgroundTaskIdentifierKey, $0)
+        return getAssociatedObject(base, &backgroundImageTaskIdentifierKey) ?? {
+            setRetainedAssociatedObject(base, &backgroundImageTaskIdentifierKey, $0)
             return $0
         } (TaskIdentifier([:]))
-    }
-    
-    private var backgroundImageTask: DownloadTask? {
-        get { return getAssociatedObject(base, &backgroundImageTaskKey) }
-        nonmutating set { setRetainedAssociatedObject(base, &backgroundImageTaskKey, newValue) }
     }
 
     private var backgroundImageCancellationToken: CancellationToken? {

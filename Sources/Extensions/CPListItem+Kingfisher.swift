@@ -78,28 +78,28 @@ extension KingfisherWrapper where Base: CPListItem {
         return setImage(
             with: source,
             imageAccessor: ImagePropertyAccessor(
-                setImage: { listItem, image, _ in
-                    listItem.setImage(image)
-                },
                 getImage: { listItem in
                     listItem.image
+                },
+                setImage: { listItem, image, _ in
+                    listItem.setImage(image)
                 }
             ),
             taskAccessor: TaskPropertyAccessor(
-                setTaskIdentifier: { wrapper, identifier in
-                    wrapper.taskIdentifier = identifier
-                },
-                getTaskIdentifier: { wrapper in
-                    wrapper.taskIdentifier
-                },
                 setTask: { wrapper, task in
                     wrapper.imageTask = task
                 },
+                getTaskIdentifier: { wrapper in
+                    wrapper.imageTaskIdentifier
+                },
+                setTaskIdentifier: { wrapper, identifier in
+                    wrapper.imageTaskIdentifier = identifier
+                },
                 getCancellationToken: { wrapper in
-                    wrapper.cancellationToken
+                    wrapper.imageCancellationToken
                 },
                 setCancellationToken: { wrapper, token in
-                    wrapper.cancellationToken = token
+                    wrapper.imageCancellationToken = token
                 }
             ),
             placeholder: placeholder,
@@ -113,39 +113,39 @@ extension KingfisherWrapper where Base: CPListItem {
     
     /// Cancel the image download task bounded to the image view if it is running.
     /// Nothing will happen if the downloading has already finished.
-    public func cancelDownloadTask() {
+    public func cancelImageDownloadTask() {
         imageTask?.cancel()
-        cancellationToken?.cancel()
+        imageCancellationToken?.cancel()
     }
 }
 
-@MainActor private var taskIdentifierKey: Void?
-@MainActor private var cancellationTokenKey: Void?
 @MainActor private var imageTaskKey: Void?
+@MainActor private var imageTaskIdentifierKey: Void?
+@MainActor private var imageCancellationTokenKey: Void?
 
 // MARK: Properties
 @MainActor
 extension KingfisherWrapper where Base: CPListItem {
 
-    public private(set) var taskIdentifier: Source.Identifier.Value? {
+    private var imageTask: DownloadTask? {
+        get { return getAssociatedObject(base, &imageTaskKey) }
+        nonmutating set { setRetainedAssociatedObject(base, &imageTaskKey, newValue)}
+    }
+
+    public private(set) var imageTaskIdentifier: Source.Identifier.Value? {
         get {
-            let box: Box<Source.Identifier.Value>? = getAssociatedObject(base, &taskIdentifierKey)
+            let box: Box<Source.Identifier.Value>? = getAssociatedObject(base, &imageTaskIdentifierKey)
             return box?.value
         }
         nonmutating set {
             let box = newValue.map { Box($0) }
-            setRetainedAssociatedObject(base, &taskIdentifierKey, box)
+            setRetainedAssociatedObject(base, &imageTaskIdentifierKey, box)
         }
     }
 
-    var cancellationToken: CancellationToken? {
-        get { getAssociatedObject(base, &cancellationTokenKey) }
-        nonmutating set { setRetainedAssociatedObject(base, &cancellationTokenKey, newValue) }
-    }
-
-    private var imageTask: DownloadTask? {
-        get { return getAssociatedObject(base, &imageTaskKey) }
-        nonmutating set { setRetainedAssociatedObject(base, &imageTaskKey, newValue)}
+    var imageCancellationToken: CancellationToken? {
+        get { getAssociatedObject(base, &imageCancellationTokenKey) }
+        nonmutating set { setRetainedAssociatedObject(base, &imageCancellationTokenKey, newValue) }
     }
 }
 #endif

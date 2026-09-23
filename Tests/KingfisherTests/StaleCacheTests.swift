@@ -707,9 +707,9 @@ class ImageViewExtensionStaleCacheTests: XCTestCase, @unchecked Sendable {
         }
         waitForExpectations(timeout: 5, handler: nil)
     }
-    // MARK: - Test 13: cancelDownloadTask cancels disk cache retrieval
+    // MARK: - Test 13: cancelImageDownloadTask cancels disk cache retrieval
 
-    /// When `cancelDownloadTask()` is called on a view whose current request is
+    /// When `cancelImageDownloadTask()` is called on a view whose current request is
     /// a disk cache hit (no DownloadTask), the CancellationToken must still be
     /// cancelled so the ioQueue skips deserialization. This is the exact scenario
     /// described in issue #2495.
@@ -741,7 +741,7 @@ class ImageViewExtensionStaleCacheTests: XCTestCase, @unchecked Sendable {
 
             DispatchQueue.main.async {
                 // Cancel via the public API — this is the #2495 scenario.
-                self.imageView.kf.cancelDownloadTask()
+                self.imageView.kf.cancelImageDownloadTask()
 
                 // Let the serializer proceed. CHECK 3 should detect stale.
                 coordinator.allowFirstCallToProceed()
@@ -753,7 +753,7 @@ class ImageViewExtensionStaleCacheTests: XCTestCase, @unchecked Sendable {
         // The image must NOT be promoted to memory — the cancel was effective.
         XCTAssertNil(
             cache.retrieveImageInMemoryCache(forKey: url.cacheKey),
-            "cancelDownloadTask() must prevent disk cache result from being promoted to memory"
+            "cancelImageDownloadTask() must prevent disk cache result from being promoted to memory"
         )
     }
 }

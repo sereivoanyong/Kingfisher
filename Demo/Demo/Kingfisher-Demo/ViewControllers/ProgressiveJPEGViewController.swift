@@ -77,7 +77,7 @@ class ProgressiveJPEGViewController: UIViewController {
         
         func reloadImage() {
             // Cancel
-            imageView.kf.cancelDownloadTask()
+            imageView.kf.cancelImageDownloadTask()
             // Clean cache
             KingfisherManager.shared.cache.removeImage(
                 forKey: ImageLoader.progressiveImageURL.cacheKey,

@@ -40,7 +40,7 @@ public protocol ImageDataProvider: Sendable {
     ///
     /// Kingfisher calls this method inside a `Task` that it owns. When the corresponding
     /// ``DownloadTask`` is cancelled by the caller (e.g. via
-    /// ``DownloadTask/cancel()`` or `imageView.kf.cancelDownloadTask()`), the owning `Task`
+    /// ``DownloadTask/cancel()`` or `imageView.kf.cancelImageDownloadTask()`), the owning `Task`
     /// is cancelled as well. Implementations are expected to cooperate with Swift
     /// concurrency cancellation:
     ///
