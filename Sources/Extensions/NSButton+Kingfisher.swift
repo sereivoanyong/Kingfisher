@@ -67,38 +67,6 @@ extension KingfisherWrapper where Base: NSButton {
         )
     }
 
-    /// Sets an image to the button with a ``Resource``.
-    ///
-    /// - Parameters:
-    ///   - resource: The ``Resource`` object that defines data information from the network or a data provider.
-    ///   - placeholder: A placeholder to show while retrieving the image from the given `source`.
-    ///   - options: A set of options to define image setting behaviors. See ``KingfisherOptionsInfo`` for more.
-    ///   - progressBlock: Called when the image downloading progress is updated. If the response does not contain an
-    ///                    `expectedContentLength`, this block will not be called.
-    ///   - completionHandler: Called when the image retrieval and setting are finished.
-    /// - Returns: A task that represents the image downloading.
-    ///
-    /// Internally, this method will use ``KingfisherManager`` to get the source. Since this method will perform UI
-    ///  changes, it is your responsibility to call it from the main thread.
-    ///
-    /// > Both `progressBlock` and `completionHandler` will also be executed in the main thread.
-    @discardableResult
-    public func setImage(
-        with resource: (any Resource)?,
-        placeholder: KFCrossPlatformImage? = nil,
-        options: KingfisherOptionsInfo? = nil,
-        progressBlock: DownloadProgressBlock? = nil,
-        completionHandler: (@MainActor @Sendable (Result<RetrieveImageResult, KingfisherError>) -> Void)? = nil
-    ) -> DownloadTask?
-    {
-        return setImage(
-            with: resource?.convertToSource(),
-            placeholder: placeholder,
-            options: options,
-            progressBlock: progressBlock,
-            completionHandler: completionHandler)
-    }
-
     func setImage(
         with source: Source?,
         placeholder: KFCrossPlatformImage? = nil,
@@ -169,38 +137,6 @@ extension KingfisherWrapper where Base: NSButton {
             progressBlock: progressBlock,
             completionHandler: completionHandler
         )
-    }
-
-    /// Sets an alternate image to the button with a ``Resource``.
-    ///
-    /// - Parameters:
-    ///   - resource: The ``Resource`` object that defines data information from the network or a data provider.
-    ///   - placeholder: A placeholder to show while retrieving the image from the given `source`.
-    ///   - options: A set of options to define image setting behaviors. See ``KingfisherOptionsInfo`` for more.
-    ///   - progressBlock: Called when the image downloading progress is updated. If the response does not contain an
-    ///                    `expectedContentLength`, this block will not be called.
-    ///   - completionHandler: Called when the image retrieval and setting are finished.
-    /// - Returns: A task that represents the image downloading.
-    ///
-    /// Internally, this method will use ``KingfisherManager`` to get the source. Since this method will perform UI
-    ///  changes, it is your responsibility to call it from the main thread.
-    ///
-    /// > Both `progressBlock` and `completionHandler` will also be executed in the main thread.
-    @discardableResult
-    public func setAlternateImage(
-        with resource: (any Resource)?,
-        placeholder: KFCrossPlatformImage? = nil,
-        options: KingfisherOptionsInfo? = nil,
-        progressBlock: DownloadProgressBlock? = nil,
-        completionHandler: (@MainActor @Sendable (Result<RetrieveImageResult, KingfisherError>) -> Void)? = nil
-    ) -> DownloadTask?
-    {
-        return setAlternateImage(
-            with: resource?.convertToSource(),
-            placeholder: placeholder,
-            options: options,
-            progressBlock: progressBlock,
-            completionHandler: completionHandler)
     }
 
     func setAlternateImage(

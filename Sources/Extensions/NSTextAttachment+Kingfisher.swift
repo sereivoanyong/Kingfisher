@@ -100,69 +100,6 @@ extension KingfisherWrapper where Base: NSTextAttachment {
         )
     }
 
-    /// Sets an image to the text attachment with a source.
-    ///
-    /// - Parameters:
-    ///   - resource: The ``Resource`` object that defines data information from the network or a data provider.
-    ///   - attributedView: The owner of the attributed string to which this `NSTextAttachment` is added.
-    ///   - placeholder: A placeholder to show while retrieving the image from the given `resource`.
-    ///   - options: A set of options to define image setting behaviors. See ``KingfisherOptionsInfo`` for more.
-    ///   - progressBlock: Called when the image downloading progress is updated. If the response does not contain an
-    ///                    `expectedContentLength`, this block will not be called.
-    ///   - completionHandler: Called when the image retrieval and setting are finished.
-    /// - Returns: A task that represents the image downloading.
-    ///
-    /// Internally, this method will use ``KingfisherManager`` to get the requested source. Since this method will
-    /// perform UI changes, it is your responsibility of calling it from the main thread.
-    ///
-    /// The retrieved image will be set to the `NSTextAttachment.image` property. Because it is not an image view-based
-    /// rendering, options related to the view, such as ``KingfisherOptionsInfoItem/transition(_:)``, are not supported.
-    ///
-    /// Kingfisher will call `setNeedsDisplay` on the `attributedView` when the image task is done. It gives the view a
-    /// chance to render the attributed string again for displaying the downloaded image. For example, if you set an
-    /// attributed string with this `NSTextAttachment` to a `UILabel` object, pass it as the `attributedView` parameter.
-    ///
-    /// Here is a typical use case:
-    ///
-    /// ```swift
-    /// let label: UILabel = // ...
-    ///
-    /// let textAttachment = NSTextAttachment()
-    /// textAttachment.kf.setImage(
-    ///     with: URL(string: "https://onevcat.com/assets/images/avatar.jpg")!,
-    ///     attributedView: label,
-    ///     options: [
-    ///        .processor(
-    ///            ResizingImageProcessor(referenceSize: .init(width: 30, height: 30))
-    ///            |> RoundCornerImageProcessor(cornerRadius: 15))
-    ///     ]
-    /// )
-    ///
-    /// let attributedText = NSMutableAttributedString(string: "Hello World")
-    /// attributedText.replaceCharacters(in: NSRange(), with: NSAttributedString(attachment: textAttachment))
-    /// label.attributedText = attributedText
-    /// ```
-    @discardableResult
-    public func setImage(
-        with resource: (any Resource)?,
-        attributedView: @autoclosure @escaping @Sendable () -> KFCrossPlatformView,
-        placeholder: KFCrossPlatformImage? = nil,
-        options: KingfisherOptionsInfo? = nil,
-        progressBlock: DownloadProgressBlock? = nil,
-        completionHandler: (@MainActor @Sendable (Result<RetrieveImageResult, KingfisherError>) -> Void)? = nil
-    ) -> DownloadTask?
-    {
-        let options = KingfisherParsedOptionsInfo(KingfisherManager.shared.defaultOptions + (options ?? .empty))
-        return setImage(
-            with: resource.map { .network($0) },
-            attributedView: attributedView,
-            placeholder: placeholder,
-            parsedOptions: options,
-            progressBlock: progressBlock,
-            completionHandler: completionHandler
-        )
-    }
-
     func setImage(
         with source: Source?,
         attributedView: @escaping @Sendable () -> KFCrossPlatformView,

@@ -133,7 +133,7 @@ public struct KFAnimatedImageViewRepresenter: KFCrossPlatformViewRepresentable, 
 struct KFAnimatedImage_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            KFAnimatedImage(source: .network(URL(string: "https://raw.githubusercontent.com/onevcat/Kingfisher-TestImages/master/DemoAppImage/GIF/1.gif")!))
+            KFAnimatedImage(source: .url(URL(string: "https://raw.githubusercontent.com/onevcat/Kingfisher-TestImages/master/DemoAppImage/GIF/1.gif")))
                 .onSuccess { r in
                     print(r)
                 }

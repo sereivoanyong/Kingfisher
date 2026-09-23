@@ -65,7 +65,7 @@ extension KFImageProtocol {
     /// - Parameters:
     ///   - url: The `URL` defining the location from which to load the target image.
     public init(_ url: URL?) {
-        self.init(source: url?.convertToSource())
+        self.init(source: .url(url))
     }
     
     /// Configures the current image with a `block` and returns another `Image` to use as the final content.

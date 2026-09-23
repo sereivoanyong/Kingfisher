@@ -57,18 +57,27 @@ public enum Source: Sendable {
 
     /// The target image should be fetched from the network remotely. The associated `Resource`
     /// value defines detailed information such as the image URL and cache key.
-    case network(any Resource)
+    case network(downloadURL: URL, cacheKey: String)
 
     /// The target image should be provided in a data format, typically as an image
     /// from local storage or in any other encoding format, such as Base64.
     case provider(any ImageDataProvider)
+
+    public static func url(_ url: URL, cacheKey: String? = nil) -> Source {
+        let cacheKey = cacheKey ?? url.cacheKey
+        if url.isFileURL {
+            return .provider(LocalFileImageDataProvider(fileURL: url, cacheKey: cacheKey))
+        } else {
+            return .network(downloadURL: url, cacheKey: cacheKey)
+        }
+    }
 
     // MARK: Getting Properties
 
     /// The cache key defined for this source value.
     public var cacheKey: String {
         switch self {
-        case .network(let resource): return resource.cacheKey
+        case .network(_, let cacheKey): return cacheKey
         case .provider(let provider): return provider.cacheKey
         }
     }
@@ -79,7 +88,7 @@ public enum Source: Sendable {
     /// For a ``Source/provider(_:)`` value, it is always `nil`.
     public var url: URL? {
         switch self {
-        case .network(let resource): return resource.downloadURL
+        case .network(let downloadURL, _): return downloadURL
         case .provider(let provider): return provider.contentURL
         }
     }
@@ -88,22 +97,22 @@ public enum Source: Sendable {
 extension Source: Hashable {
     public static func == (lhs: Source, rhs: Source) -> Bool {
         switch (lhs, rhs) {
-        case (.network(let r1), .network(let r2)):
-            return r1.cacheKey == r2.cacheKey && r1.downloadURL == r2.downloadURL
+        case (.network(let r1CacheKey, let r1DownloadURL), .network(let r2CacheKey, let r2DownloadURL)):
+            return r1CacheKey == r2CacheKey && r1DownloadURL == r2DownloadURL
         case (.provider(let p1), .provider(let p2)):
             return p1.cacheKey == p2.cacheKey && p1.contentURL == p2.contentURL
-        case (.provider(_), .network(_)):
+        case (.provider, .network):
             return false
-        case (.network(_), .provider(_)):
+        case (.network, .provider):
             return false
         }
     }
 
     public func hash(into hasher: inout Hasher) {
         switch self {
-        case .network(let r):
-            hasher.combine(r.cacheKey)
-            hasher.combine(r.downloadURL)
+        case .network(let cacheKey, let downloadURL):
+            hasher.combine(cacheKey)
+            hasher.combine(downloadURL)
         case .provider(let p):
             hasher.combine(p.cacheKey)
             hasher.combine(p.contentURL)
@@ -111,11 +120,10 @@ extension Source: Hashable {
     }
 }
 
-extension Source {
-    var asResource: (any Resource)? {
-        guard case .network(let resource) = self else {
-            return nil
-        }
-        return resource
+extension Optional where Wrapped == Source {
+
+    public static func url(_ url: URL?, cacheKey: String? = nil) -> Source? {
+        guard let url else { return nil }
+        return Source.url(url, cacheKey: cacheKey)
     }
 }

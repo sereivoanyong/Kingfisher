@@ -69,41 +69,6 @@ extension KingfisherWrapper where Base: UIButton {
             completionHandler: completionHandler
         )
     }
-    
-    /// Sets an image to the button for a specified state with a requested resource.
-    ///
-    /// - Parameters:
-    ///   - resource: The `Resource` object contains information about the resource.
-    ///   - state: The button state to which the image should be set.
-    ///   - placeholder: A placeholder to show while retrieving the image from the given `resource`.
-    ///   - options: An options set to define image setting behaviors. See `KingfisherOptionsInfo` for more.
-    ///   - progressBlock: Called when the image downloading progress gets updated. If the response does not contain an
-    ///                    `expectedContentLength`, this block will not be called.
-    ///   - completionHandler: Called when the image retrieved and set finished.
-    /// - Returns: A task represents the image downloading.
-    ///
-    /// - Note:
-    /// Internally, this method will use `KingfisherManager` to get the requested resource, from either cache
-    /// or network. Since this method will perform UI changes, you must call it from the main thread.
-    /// Both `progressBlock` and `completionHandler` will be also executed in the main thread.
-    ///
-    @discardableResult
-    public func setImage(
-        with resource: (any Resource)?,
-        for state: UIControl.State,
-        placeholder: UIImage? = nil,
-        options: KingfisherOptionsInfo? = nil,
-        progressBlock: DownloadProgressBlock? = nil,
-        completionHandler: (@MainActor @Sendable (Result<RetrieveImageResult, KingfisherError>) -> Void)? = nil) -> DownloadTask?
-    {
-        return setImage(
-            with: resource?.convertToSource(),
-            for: state,
-            placeholder: placeholder,
-            options: options,
-            progressBlock: progressBlock,
-            completionHandler: completionHandler)
-    }
 
     @discardableResult
     public func setImage(
@@ -194,41 +159,6 @@ extension KingfisherWrapper where Base: UIButton {
             progressBlock: progressBlock,
             completionHandler: completionHandler
         )
-    }
-
-    /// Sets a background image to the button for a specified state with a requested resource.
-    ///
-    /// - Parameters:
-    ///   - resource: The `Resource` object contains information about the resource.
-    ///   - state: The button state to which the image should be set.
-    ///   - placeholder: A placeholder to show while retrieving the image from the given `resource`.
-    ///   - options: An options set to define image setting behaviors. See `KingfisherOptionsInfo` for more.
-    ///   - progressBlock: Called when the image downloading progress gets updated. If the response does not contain an
-    ///                    `expectedContentLength`, this block will not be called.
-    ///   - completionHandler: Called when the image retrieved and set finished.
-    /// - Returns: A task represents the image downloading.
-    ///
-    /// - Note:
-    /// Internally, this method will use `KingfisherManager` to get the requested resource, from either cache
-    /// or network. Since this method will perform UI changes, you must call it from the main thread.
-    /// Both `progressBlock` and `completionHandler` will be also executed in the main thread.
-    ///
-    @discardableResult
-    public func setBackgroundImage(
-        with resource: (any Resource)?,
-        for state: UIControl.State,
-        placeholder: UIImage? = nil,
-        options: KingfisherOptionsInfo? = nil,
-        progressBlock: DownloadProgressBlock? = nil,
-        completionHandler: (@Sendable (Result<RetrieveImageResult, KingfisherError>) -> Void)? = nil) -> DownloadTask?
-    {
-        return setBackgroundImage(
-            with: resource?.convertToSource(),
-            for: state,
-            placeholder: placeholder,
-            options: options,
-            progressBlock: progressBlock,
-            completionHandler: completionHandler)
     }
 
     func setBackgroundImage(

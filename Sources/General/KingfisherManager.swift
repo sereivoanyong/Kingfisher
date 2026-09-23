@@ -205,43 +205,6 @@ public class KingfisherManager: @unchecked Sendable {
 
     // MARK: - Getting Images
 
-    /// Retrieves an image from a specified resource.
-    ///
-    /// - Parameters:
-    ///   - resource: The ``Resource`` object defining data information, such as a key or URL.
-    ///   - options: Options to use when creating the image.
-    ///   - progressBlock: Called when the image download progress is updated. This block is invoked only if the response 
-    ///   contains an `expectedContentLength` and always runs on the main queue.
-    ///   - downloadTaskUpdated: Called when a new image download task is created for the current image retrieval. This
-    ///   typically occurs when an alternative source is used to replace the original (failed) task. You can update your
-    ///   reference to the ``DownloadTask`` if you want to manually invoke ``DownloadTask/cancel()`` on the new task.
-    ///   - completionHandler: Called when the image retrieval and setting are completed. This completion handler is 
-    ///   invoked from the `options.callbackQueue`. If not specified, the main queue is used.
-    ///
-    /// - Returns: A task representing the image download. If a download task is initiated for a ``Source/network(_:)`` resource,
-    ///            the started ``DownloadTask`` is returned; otherwise, `nil` is returned.
-    ///
-    /// - Note: This method first checks whether the requested `resource` is already in the cache. If it is cached,
-    /// it returns `nil` and invokes the `completionHandler` after retrieving the cached image. Otherwise, it downloads
-    /// the `resource`, stores it in the cache, and then calls the `completionHandler`.
-    ///
-    @discardableResult
-    public func retrieveImage(
-        with resource: any Resource,
-        options: KingfisherOptionsInfo? = nil,
-        progressBlock: DownloadProgressBlock? = nil,
-        downloadTaskUpdated: DownloadTaskUpdatedBlock? = nil,
-        completionHandler: (@Sendable (Result<RetrieveImageResult, KingfisherError>) -> Void)?) -> DownloadTask?
-    {
-        return retrieveImage(
-            with: resource.convertToSource(),
-            options: options,
-            progressBlock: progressBlock,
-            downloadTaskUpdated: downloadTaskUpdated,
-            completionHandler: completionHandler
-        )
-    }
-
     /// Retrieves an image from a specified source.
     ///
     /// - Parameters:
@@ -697,14 +660,14 @@ public class KingfisherManager: @unchecked Sendable {
         }
 
         switch source {
-        case .network(let resource):
+        case .network(let downloadURL, _):
             let downloader = options.downloader ?? self.downloader
             let taskCreatedReporter = DownloadTaskCreatedReporter(downloadTaskCreated)
             let downloadOptions = options.appendingDownloadTaskStartedHandler { task in
                 taskCreatedReporter.report(task)
             }
             let task = downloader.downloadImage(
-                with: resource.downloadURL, options: downloadOptions, completionHandler: _cacheImage
+                with: downloadURL, options: downloadOptions, completionHandler: _cacheImage
             )
             taskCreatedReporter.report(task)
 
@@ -1246,34 +1209,6 @@ public class KingfisherManager: @unchecked Sendable {
 
 // Concurrency
 extension KingfisherManager {
-    
-    /// Retrieves an image from a specified resource.
-    ///
-    /// - Parameters:
-    ///   - resource: The ``Resource`` object defining data information, such as a key or URL.
-    ///   - options: Options to use when creating the image.
-    ///   - progressBlock: Called when the image download progress is updated. This block is invoked only if the response
-    ///   contains an `expectedContentLength` and always runs on the main queue.
-    ///
-    /// - Returns: The ``RetrieveImageResult`` containing the retrieved image object and cache type.
-    /// - Throws: A ``KingfisherError`` if any issue occurred during the image retrieving progress.
-    ///
-    /// - Note: This method first checks whether the requested `resource` is already in the cache. If it is cached,
-    /// it returns `nil` and invokes the `completionHandler` after retrieving the cached image. Otherwise, it downloads
-    /// the `resource`, stores it in the cache, and then calls the `completionHandler`.
-    ///
-    public func retrieveImage(
-        with resource: any Resource,
-        options: KingfisherOptionsInfo? = nil,
-        progressBlock: DownloadProgressBlock? = nil
-    ) async throws -> RetrieveImageResult
-    {
-        try await retrieveImage(
-            with: resource.convertToSource(),
-            options: options,
-            progressBlock: progressBlock
-        )
-    }
     
     /// Retrieves an image from a specified source.
     ///

@@ -57,33 +57,6 @@ public enum KF {
         Builder(source: source)
     }
 
-    /// Creates a builder for a given ``Resource``.
-    /// - Parameter resource: The ``Resource`` object defines data information like key or URL.
-    /// - Returns: A ``Builder`` for future configuration. After configuring the builder, call its
-    /// `Builder/set(to:)` to start the image loading.
-    public static func resource(_ resource: (any Resource)?) -> KF.Builder {
-        source(resource?.convertToSource())
-    }
-
-    /// Creates a builder for a given `URL` and an optional cache key.
-    /// - Parameters:
-    ///   - url: The URL where the image should be downloaded.
-    ///   - cacheKey: The key used to store the downloaded image in cache.
-    ///               If `nil`, the `absoluteString` of `url` is used as the cache key.
-    /// - Returns: A ``Builder`` for future configuration. After configuring the builder, call its
-    /// `Builder/set(to:)` to start the image loading.
-    public static func url(_ url: URL?, cacheKey: String? = nil) -> KF.Builder {
-        source(url?.convertToSource(overrideCacheKey: cacheKey))
-    }
-
-    /// Creates a builder for a given ``ImageDataProvider``.
-    /// - Parameter provider: The ``ImageDataProvider`` object contains information about the data.
-    /// - Returns: A ``Builder`` for future configuration. After configuring the builder, call its
-    /// `Builder/set(to:)` to start the image loading.
-    public static func dataProvider(_ provider: (any ImageDataProvider)?) -> KF.Builder {
-        source(provider?.convertToSource())
-    }
-
     /// Creates a builder for some given raw data and a cache key.
     /// - Parameters:
     ///   - data: The data object from which the image should be created.
@@ -92,9 +65,9 @@ public enum KF {
     /// `Builder/set(to:)` to start the image loading.
     public static func data(_ data: Data?, cacheKey: String) -> KF.Builder {
         if let data = data {
-            return dataProvider(RawImageDataProvider(data: data, cacheKey: cacheKey))
+            return source(.provider(RawImageDataProvider(data: data, cacheKey: cacheKey)))
         } else {
-            return dataProvider(nil)
+            return source(nil)
         }
     }
 }

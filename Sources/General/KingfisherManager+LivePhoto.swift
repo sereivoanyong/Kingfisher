@@ -177,9 +177,9 @@ extension KingfisherManager {
                     let downloadedResource: LivePhotoResourceDownloadingResult
                     
                     switch resource.dataSource {
-                    case .network(let urlResource):
+                    case .network(let downloadURL, _):
                         downloadedResource = try await downloader.downloadLivePhotoResource(
-                            with: urlResource.downloadURL,
+                            with: downloadURL,
                             options: options
                         )
                     case .provider(let provider):

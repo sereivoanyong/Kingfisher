@@ -134,7 +134,7 @@ extension KFImage {
 struct KFImage_Previews: PreviewProvider {
     static var previews: some View {
         Group {
-            KFImage.url(URL(string: "https://raw.githubusercontent.com/onevcat/Kingfisher/master/images/logo.png")!)
+            KFImage.source(.url(URL(string: "https://raw.githubusercontent.com/onevcat/Kingfisher/master/images/logo.png")))
                 .onSuccess { r in
                     print(r)
                 }

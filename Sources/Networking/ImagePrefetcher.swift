@@ -34,29 +34,11 @@ import UIKit
 /// Progress update block of prefetcher when initialized with a list of resources.
 ///
 /// - Parameters:
-///   - skippedResources: An array of resources that are already cached before the prefetching begins.
-///   - failedResources: An array of resources that fail to be downloaded. This could be because of being cancelled while downloading, encountering an error during downloading, or the download not being started at all.
-///   - completedResources: An array of resources that are downloaded and cached successfully.
-public typealias PrefetcherProgressBlock =
-    @Sendable (_ skippedResources: [any Resource], _ failedResources: [any Resource], _ completedResources: [any Resource]) -> Void
-
-/// Progress update block of prefetcher when initialized with a list of resources.
-///
-/// - Parameters:
 ///   - skippedSources: An array of sources that are already cached before the prefetching begins.
 ///   - failedSources: An array of sources that fail to be fetched.
 ///   - completedResources: An array of sources that are fetched and cached successfully.
 public typealias PrefetcherSourceProgressBlock =
     @Sendable (_ skippedSources: [Source], _ failedSources: [Source], _ completedSources: [Source]) -> Void
-
-/// Completion block of prefetcher when initialized with a list of sources.
-///
-/// - Parameters:
-///   - skippedResources: An array of resources that are already cached before the prefetching begins.
-///   - failedResources: An array of resources that fail to be downloaded. This could be because of being cancelled while downloading, encountering an error during downloading, or the download not being started at all.
-///   - completedResources: An array of resources that are downloaded and cached successfully.
-public typealias PrefetcherCompletionHandler =
-    @Sendable (_ skippedResources: [any Resource], _ failedResources: [any Resource], _ completedResources: [any Resource]) -> Void
 
 /// Completion block of prefetcher when initialized with a list of sources.
 ///
@@ -86,9 +68,6 @@ public class ImagePrefetcher: CustomStringConvertible, @unchecked Sendable {
     private let prefetchSources: [Source]
     private let optionsInfo: KingfisherParsedOptionsInfo
 
-    private var progressBlock: PrefetcherProgressBlock?
-    private var completionHandler: PrefetcherCompletionHandler?
-
     private var progressSourceBlock: PrefetcherSourceProgressBlock?
     private var completionSourceHandler: PrefetcherSourceCompletionHandler?
     
@@ -110,63 +89,6 @@ public class ImagePrefetcher: CustomStringConvertible, @unchecked Sendable {
     private var finished: Bool {
         let totalFinished: Int = failedSources.count + skippedSources.count + completedSources.count
         return totalFinished == prefetchSources.count && tasks.isEmpty
-    }
-
-    /// Creates an image prefetcher with an array of URLs.
-    ///
-    /// The prefetcher should be initiated with a list of prefetching targets. The URLs list is immutable.
-    /// After you get a valid ``ImagePrefetcher`` object, you can call ``ImagePrefetcher/start()`` on it to begin the
-    /// prefetching process. The images that are already cached will be skipped without being downloaded again.
-    ///
-    /// - Parameters:
-    ///   - urls: The URLs to be prefetched.
-    ///   - options: Options that can control some behaviors. See ``KingfisherOptionsInfo`` for more information.
-    ///   - progressBlock: Called every time a resource is downloaded, skipped, or canceled.
-    ///   - completionHandler: Called when the whole prefetching process is finished.
-    ///
-    /// By default, the ``ImageDownloader/default`` and ``ImageCache/default`` will be used as the downloader and cache
-    /// targets, respectively. You can specify other downloaders or caches by using a customized
-    /// ``KingfisherOptionsInfo``. Both the progress and completion blocks will be invoked on the main thread. The
-    /// ``KingfisherOptionsInfoItem/callbackQueue(_:)`` value in `optionsInfo` will be ignored in this method.
-    public convenience init(
-        urls: [URL],
-        options: KingfisherOptionsInfo? = nil,
-        progressBlock: PrefetcherProgressBlock? = nil,
-        completionHandler: PrefetcherCompletionHandler? = nil)
-    {
-        let resources: [any Resource] = urls.map { $0 }
-        self.init(
-            resources: resources,
-            options: options,
-            progressBlock: progressBlock,
-            completionHandler: completionHandler)
-    }
-
-    /// Creates an image prefetcher with an array of ``Resource``s.
-    ///
-    /// The prefetcher should be initiated with a list of prefetching targets. The resource list is immutable.
-    /// After you get a valid ``ImagePrefetcher`` object, you can call ``ImagePrefetcher/start()`` on it to begin the
-    /// prefetching process. The images that are already cached will be skipped without being downloaded again.
-    ///
-    /// - Parameters:
-    ///   - resources: An array of resource to be prefetched. See ``ImageResource``.
-    ///   - options: Options that can control some behaviors. See ``KingfisherOptionsInfo`` for more information.
-    ///   - progressBlock: Called every time a resource is downloaded, skipped, or canceled.
-    ///   - completionHandler: Called when the whole prefetching process is finished.
-    ///
-    /// By default, the ``ImageDownloader/default`` and ``ImageCache/default`` will be used as the downloader and cache
-    /// targets, respectively. You can specify other downloaders or caches by using a customized
-    /// ``KingfisherOptionsInfo``. Both the progress and completion blocks will be invoked on the main thread. The
-    /// ``KingfisherOptionsInfoItem/callbackQueue(_:)`` value in `optionsInfo` will be ignored in this method.
-    public convenience init(
-        resources: [any Resource],
-        options: KingfisherOptionsInfo? = nil,
-        progressBlock: PrefetcherProgressBlock? = nil,
-        completionHandler: PrefetcherCompletionHandler? = nil)
-    {
-        self.init(sources: resources.map { $0.convertToSource() }, options: options)
-        self.progressBlock = progressBlock
-        self.completionHandler = completionHandler
     }
 
     /// Creates an image prefetcher with an array of ``Source``s.
@@ -380,7 +302,7 @@ public class ImagePrefetcher: CustomStringConvertible, @unchecked Sendable {
     
     private func reportProgress() {
 
-        if progressBlock == nil && progressSourceBlock == nil {
+        if progressSourceBlock == nil {
             return
         }
 
@@ -388,14 +310,8 @@ public class ImagePrefetcher: CustomStringConvertible, @unchecked Sendable {
         let failed = self.failedSources
         let completed = self.completedSources
         let progressSourceBlock = self.progressSourceBlock
-        let progressBlock = self.progressBlock
         CallbackQueue.mainCurrentOrAsync.execute {
             progressSourceBlock?(skipped, failed, completed)
-            progressBlock?(
-                skipped.compactMap { $0.asResource },
-                failed.compactMap { $0.asResource },
-                completed.compactMap { $0.asResource }
-            )
         }
     }
     
@@ -423,7 +339,7 @@ public class ImagePrefetcher: CustomStringConvertible, @unchecked Sendable {
     
     private func handleComplete() {
 
-        if completionHandler == nil && completionSourceHandler == nil {
+        if completionSourceHandler == nil {
             return
         }
 
@@ -432,20 +348,12 @@ public class ImagePrefetcher: CustomStringConvertible, @unchecked Sendable {
         let failed = self.failedSources
         let completed = self.completedSources
         let completionSourceHandler = self.completionSourceHandler
-        let completionHandler = self.completionHandler
-        self.completionHandler = nil
         self.completionSourceHandler = nil
-        self.progressBlock = nil
         self.progressSourceBlock = nil
 
         // The completion handler should be called on the main thread
         CallbackQueue.mainCurrentOrAsync.execute {
             completionSourceHandler?(skipped, failed, completed)
-            completionHandler?(
-                skipped.compactMap { $0.asResource },
-                failed.compactMap { $0.asResource },
-                completed.compactMap { $0.asResource }
-            )
         }
     }
 }
